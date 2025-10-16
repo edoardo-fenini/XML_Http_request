@@ -45,10 +45,8 @@ function caricaDaServer() {
     richiesta.open("GET", "persone.json", true);
 
     richiesta.onload = function() {
-        if (richiesta.status === 200) {
             const elenco = JSON.parse(richiesta.responseText);
             mostraTabella(elenco);
-        }
     };
 
     richiesta.send();

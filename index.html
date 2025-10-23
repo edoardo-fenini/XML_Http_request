@@ -166,7 +166,7 @@ function soloMaggiorenni() {
   });
   
   var testo = "";
-  if (maggiori.length == 0) testo = "Nessun maggiorenne (che sfortuna)";
+  if (maggiori.length == 0) testo = "Nessun maggiorenne";
   else {
     testo = "<b>Maggiorenni:</b><br>";
     for (var z of maggiori) testo += "- " + z.cognome + "<br>";
@@ -178,7 +178,7 @@ function soloMaggiorenni() {
 function calcolaGenerazione() {
   var dataInserita = document.getElementById("datina").value;
   if (!dataInserita) {
-    document.getElementById("generaz").innerHTML = "Metti una data, dai!";
+    document.getElementById("generaz").innerHTML = "Inserire una data";
     return;
   }
 

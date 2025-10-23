@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Anagrafica 5B</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fafafa;
+      margin: 25px 35px;
+      color: #333;
+    }
+
+    h2 {
+      color: #2e3d4f;
+      margin-bottom: 10px;
+    }
+
+    h3 {
+      margin-bottom: 5px;
+      color: #34495e;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 70%;
+      margin-top: 10px;
+      background-color: #fff;
+      box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    th, td {
+      border: 1px solid #aaa;
+      padding: 7px 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #e9e9e9;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f4f4f4;
+    }
+
+    input[type="text"], input[type="date"] {
+      padding: 5px;
+      border: 1px solid #aaa;
+      border-radius: 3px;
+      margin-right: 5px;
+    }
+
+    button {
+      background-color: #4a77d4;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 5px 12px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #3b62b8;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #ccc;
+      margin: 18px 0;
+    }
+
+    #tavolone, #risultati, #maggiorenni, #generaz {
+      margin-top: 10px;
+    }
+
+    ul {
+      list-style-type: circle;
+      margin-left: 25px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Anagrafica Classe 5B</h2>
+<div id="tavolone"></div>
+
+<hr>
+
+<h3>Filtra per iniziale del cognome</h3>
+<input type="text" id="letterina" maxlength="1" placeholder="Es: K">
+<button onclick="filtroCognomi()">Cerca</button>
+<div id="risultati"></div>
+
+<hr>
+
+<h3>Visualizza cognomi dei maggiorenni</h3>
+<button onclick="soloMaggiorenni()">Mostra</button>
+<div id="maggiorenni"></div>
+
+<hr>
+
+<h3>Scopri la tua generazione</h3>
+<input type="date" id="datina">
+<button onclick="calcolaGenerazione()">Scopri</button>
+<div id="generaz"></div>
+
+<script>
+// variabile globale per salvare i dati
+var Dati1 = [];
+
+// carico il json con XMLHttpRequest
+function leggiJSON() {
+  var richiesta = new XMLHttpRequest();
+  richiesta.open('GET', 'anagrafica.json', true);
+  richiesta.onreadystatechange = function() {
+    // controllo
+    if (this.readyState == 4 && this.status == 200) {
+      Dati1 = JSON.parse(this.responseText);
+      stampaTabella(Dati1);
+    } else if (this.readyState == 4 && this.status != 200) {
+      // se il file non si trova o non carica bene
+      document.getElementById("tavolone").innerHTML = "<p style='color:red;'>Errore nel caricamento del file JSON </p>";
+    }
+  };
+  richiesta.send();
+}
+
+// funzione per stampare tabella utenti
+function stampaTabella(arrayDati) {
+  var testoHTML = "<table><tr><th>Nome</th><th>Cognome</th><th>Data di nascita</th></tr>";
+  for (var i = 0; i < arrayDati.length; i++) {
+    testoHTML += "<tr><td>" + arrayDati[i].nome + "</td><td>" + arrayDati[i].cognome + "</td><td>" + arrayDati[i].data_nascita + "</td></tr>";
+  }
+  testoHTML += "</table>";
+  document.getElementById("tavolone").innerHTML = testoHTML;
+}
+
+// ricerca full text per iniziale del cognome
+function filtroCognomi() {
+  var l = document.getElementById("letterina").value.toUpperCase();
+  var out = "";
+  if (l == "") { out = "Inserisci una lettera, su!"; }
+  else {
+    var trovati = Dati1.filter(x => x.cognome.toUpperCase().startsWith(l));
+    if (trovati.length == 0) out = "Nessun cognome trovato con " + l;
+    else {
+      out = "<ul>";
+      for (var j of trovati) out += "<li>" + j.cognome + "</li>";
+      out += "</ul>";
+    }
+  }
+  document.getElementById("risultati").innerHTML = out;
+}
+
+// stampa cognomi dei maggiorenni
+function soloMaggiorenni() {
+  var oggi = new Date();
+  var maggiori = Dati1.filter(p => {
+    var dataN = new Date(p.data_nascita);
+    var eta = oggi.getFullYear() - dataN.getFullYear();
+    if (oggi.getMonth() < dataN.getMonth() || 
+       (oggi.getMonth() === dataN.getMonth() && oggi.getDate() < dataN.getDate())) {
+      eta--;
+    }
+    return eta >= 18;
+  });
+  
+  var testo = "";
+  if (maggiori.length == 0) testo = "Nessun maggiorenne (che sfortuna)";
+  else {
+    testo = "<b>Maggiorenni:</b><br>";
+    for (var z of maggiori) testo += "- " + z.cognome + "<br>";
+  }
+  document.getElementById("maggiorenni").innerHTML = testo;
+}
+
+// funzione generazione
+function calcolaGenerazione() {
+  var dataInserita = document.getElementById("datina").value;
+  if (!dataInserita) {
+    document.getElementById("generaz").innerHTML = "Metti una data, dai!";
+    return;
+  }
+
+  var anno = new Date(dataInserita).getFullYear();
+  var generaz = "";
+
+  if (anno >= 1901 && anno <= 1927) generaz = "Greatest Generation";
+  else if (anno >= 1928 && anno <= 1945) generaz = "Generazione Silenziosa";
+  else if (anno >= 1946 && anno <= 1964) generaz = "Baby Boomers";
+  else if (anno >= 1965 && anno <= 1980) generaz = "Generazione X";
+  else if (anno >= 1981 && anno <= 1996) generaz = "Millennials";
+  else if (anno >= 1997 && anno <= 2012) generaz = "Generazione Z";
+  else if (anno >= 2013) generaz = "Generazione Alpha";
+  else generaz = "Data troppo vecchia, impossibile!";
+
+  document.getElementById("generaz").innerHTML = "Appartieni alla <b>" + generaz + "</b>";
+}
+
+// avvio caricamento json all'apertura
+leggiJSON();
+</script>
+
+</body>
+</html>
